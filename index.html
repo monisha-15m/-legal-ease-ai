@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ bot_name }}</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+.container{max-width:900px;margin:35px auto;padding:0 16px}.card{background:white;border-radius:18px;box-shadow:0 8px 30px #00000012;overflow:hidden}
+.header{padding:22px;background:#172033;color:white}.header h1{margin:0 0 5px}.header p{margin:0;opacity:.8}
+#chat{height:500px;overflow-y:auto;padding:20px}.msg{margin:12px 0;display:flex}.user{justify-content:flex-end}.bubble{max-width:75%;padding:12px 15px;border-radius:14px;line-height:1.5;white-space:pre-wrap}.bot .bubble{background:#eef2f7}.user .bubble{background:#172033;color:white}
+.form{display:flex;gap:10px;padding:15px;border-top:1px solid #eee}.form input{flex:1;padding:13px;border:1px solid #ccd3df;border-radius:10px;font-size:16px}.form button{padding:13px 20px;border:0;border-radius:10px;background:#172033;color:white;cursor:pointer}.form button:disabled{opacity:.5}
+.small{font-size:13px;opacity:.65;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="container"><div class="card">
+<div class="header"><h1>{{ bot_name }}</h1><p>Frontend + Flask REST API + Gemini LLM</p></div>
+<div id="chat"><div class="msg bot"><div class="bubble">Hello! I am {{ bot_name }}. How can I help you?</div></div></div>
+<form class="form" id="form"><input id="message" autocomplete="off" placeholder="Type your question..." required><button id="send">Send</button></form>
+</div></div>
+<script>
+const form=document.getElementById("form"), input=document.getElementById("message"), chat=document.getElementById("chat"), send=document.getElementById("send");
+function add(text,who){const row=document.createElement("div");row.className="msg "+who;const b=document.createElement("div");b.className="bubble";b.textContent=text;row.appendChild(b);chat.appendChild(row);chat.scrollTop=chat.scrollHeight}
+form.addEventListener("submit",async e=>{
+ e.preventDefault(); const text=input.value.trim(); if(!text)return;
+ add(text,"user"); input.value=""; send.disabled=true;
+ try{const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text})}); const d=await r.json(); add(d.reply||("Error: "+(d.error||"Unknown error")),"bot")}
+ catch(err){add("Connection error. Make sure Flask is running.","bot")}
+ finally{send.disabled=false;input.focus()}
+});
+</script>
+</body>
+</html>
